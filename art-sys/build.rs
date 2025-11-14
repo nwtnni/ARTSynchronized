@@ -1,7 +1,7 @@
 fn main() {
     let root = env!("CARGO_MANIFEST_DIR");
 
-    cxx_build::bridge("src/main.rs")
+    cxx_build::bridge("src/lib.rs")
         .cpp(true)
         .file("cpp/rowex.cpp")
         .include("include")

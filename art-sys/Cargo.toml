@@ -2,7 +2,6 @@
 name = "art-sys"
 version = "0.1.0"
 edition = "2024"
-links = "art"
 
 [dependencies]
 cxx = "1.0.188"
