@@ -11,3 +11,7 @@ std::unique_ptr<Rowex> rowex_new();
 std::unique_ptr<EpochInfo> rowex_info(Rowex* rowex);
 
 void rowex_insert(Rowex* rowex, uint64_t key, EpochInfo* epocheInfo);
+
+uint64_t rowex_lookup(Rowex* rowex, uint64_t key, EpochInfo* epocheInfo);
+
+void rowex_remove(Rowex* rowex, uint64_t key, EpochInfo* epocheInfo);

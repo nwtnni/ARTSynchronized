@@ -18,6 +18,20 @@ std::unique_ptr<EpochInfo> rowex_info(Rowex* rowex) {
     return std::make_unique<EpochInfo>(std::move(rowex->getThreadInfo()));
 }
 
-void rowex_insert(Rowex* rowex, uint64_t key, EpochInfo* epocheInfo) {
-    std::cerr << "insert " << key << std::endl;
+void rowex_insert(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
+    Key key;
+    loadKey(tid, key);
+    return rowex->insert(key, tid, *epocheInfo);
+}
+
+uint64_t rowex_lookup(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
+    Key key;
+    loadKey(tid, key);
+    return rowex->lookup(key, *epocheInfo);
+}
+
+void rowex_remove(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
+    Key key;
+    loadKey(tid, key);
+    return rowex->remove(key, tid, *epocheInfo);
 }
