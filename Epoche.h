@@ -1,6 +1,7 @@
 #ifndef ART_EPOCHE_H
 #define ART_EPOCHE_H
 
+#include <cstdint>
 #include <atomic>
 #include <array>
 #include "tbb/enumerable_thread_specific.h"
