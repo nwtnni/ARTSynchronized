@@ -21,7 +21,6 @@ fn main() {
         .compile("art-sys");
 
     // Must be after linking against `ARTSynchronized`
-    pkg_config::probe_library("mimalloc").expect("Could not find mimalloc");
     pkg_config::probe_library("tbb").expect("Could not find tbb");
 
     for path in files.iter().chain(&includes) {
