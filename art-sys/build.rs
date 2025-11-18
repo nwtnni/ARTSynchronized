@@ -10,7 +10,6 @@ fn main() {
         format!("{ROOT}/include"),
         format!("{ROOT}/../ROWEX/"),
         format!("{ROOT}/../"),
-        format!("{ROOT}/../../mimalloc_rust/libmimalloc-sys/c_src/mimalloc/v3/include"),
     ];
 
     cxx_build::bridge("src/lib.rs")
@@ -27,9 +26,4 @@ fn main() {
     for path in files.iter().chain(&includes) {
         println!("cargo:rerun-if-changed={path}");
     }
-
-    println!(
-        "cargo:rustc-link-search=native={ROOT}/../../mimalloc_rust/libmimalloc-sys/c_src/mimalloc/v3/build/"
-    );
-    println!("cargo:rustc-link-lib=static=mimalloc");
 }
