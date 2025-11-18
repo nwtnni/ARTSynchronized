@@ -1,37 +1,37 @@
-#include <memory>
 #include <iostream>
+#include <memory>
 
 #include "rowex.h"
 
 void loadKey(TID tid, Key &key) {
-    // Store the key of the tuple into the key vector
-    // Implementation is database specific
-    key.setKeyLen(sizeof(tid));
-    reinterpret_cast<uint64_t *>(&key[0])[0] = __builtin_bswap64(tid);
+  // Store the key of the tuple into the key vector
+  // Implementation is database specific
+  key.setKeyLen(sizeof(tid));
+  reinterpret_cast<uint64_t *>(&key[0])[0] = __builtin_bswap64(tid);
 }
 
 std::unique_ptr<ART_ROWEX::Tree> rowex_new() {
-    return std::unique_ptr<ART_ROWEX::Tree>(new ART_ROWEX::Tree(loadKey));
+  return std::unique_ptr<ART_ROWEX::Tree>(new ART_ROWEX::Tree(loadKey));
 }
 
-std::unique_ptr<EpochInfo> rowex_info(Rowex* rowex) {
-    return std::make_unique<EpochInfo>(std::move(rowex->getThreadInfo()));
+std::unique_ptr<EpochInfo> rowex_info(Rowex *rowex) {
+  return std::make_unique<EpochInfo>(std::move(rowex->getThreadInfo()));
 }
 
-void rowex_insert(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
-    Key key;
-    loadKey(tid, key);
-    return rowex->insert(key, tid, *epocheInfo);
+void rowex_insert(Rowex *rowex, uint64_t tid, EpochInfo *epocheInfo) {
+  Key key;
+  loadKey(tid, key);
+  return rowex->insert(key, tid, *epocheInfo);
 }
 
-uint64_t rowex_lookup(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
-    Key key;
-    loadKey(tid, key);
-    return rowex->lookup(key, *epocheInfo);
+uint64_t rowex_lookup(Rowex *rowex, uint64_t tid, EpochInfo *epocheInfo) {
+  Key key;
+  loadKey(tid, key);
+  return rowex->lookup(key, *epocheInfo);
 }
 
-void rowex_remove(Rowex* rowex, uint64_t tid, EpochInfo* epocheInfo) {
-    Key key;
-    loadKey(tid, key);
-    return rowex->remove(key, tid, *epocheInfo);
+void rowex_remove(Rowex *rowex, uint64_t tid, EpochInfo *epocheInfo) {
+  Key key;
+  loadKey(tid, key);
+  return rowex->remove(key, tid, *epocheInfo);
 }
