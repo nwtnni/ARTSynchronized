@@ -3,7 +3,7 @@ const ROOT: &str = env!("CARGO_MANIFEST_DIR");
 fn main() {
     let files = [
         format!("{ROOT}/../ROWEX/Tree.cpp"),
-        format!("{ROOT}/cpp/rowex.cpp"),
+        format!("{ROOT}/cpp/wrap.cpp"),
     ];
 
     let includes = [
@@ -18,7 +18,7 @@ fn main() {
         .files(&files)
         .includes(&includes)
         .flag("-march=native")
-        .compile("art-sys");
+        .compile("art");
 
     // Must be after linking against `ARTSynchronized`
     pkg_config::probe_library("tbb").expect("Could not find tbb");

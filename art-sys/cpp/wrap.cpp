@@ -1,7 +1,4 @@
-#include <iostream>
-#include <memory>
-
-#include "rowex.h"
+#include "wrap.h"
 
 void loadKey(TID tid, Key &key) {
   // Store the key of the tuple into the key vector

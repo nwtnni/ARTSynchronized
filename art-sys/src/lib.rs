@@ -3,7 +3,7 @@ use cxx::UniquePtr;
 #[cxx::bridge]
 mod ffi {
     unsafe extern "C++" {
-        include!("art-sys/include/rowex.h");
+        include!("art-sys/include/wrap.h");
 
         type EpochInfo;
 
