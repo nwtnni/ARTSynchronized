@@ -9,15 +9,15 @@ mod ffi {
 
         type Rowex;
 
-        fn rowex_new() -> UniquePtr<Rowex>;
+        fn rowex_u64_new() -> UniquePtr<Rowex>;
 
         unsafe fn rowex_info(rowex: *mut Rowex) -> UniquePtr<EpochInfo>;
 
-        unsafe fn rowex_insert(rowex: *mut Rowex, key: u64, info: *mut EpochInfo);
+        unsafe fn rowex_u64_insert(rowex: *mut Rowex, key: u64, info: *mut EpochInfo);
 
-        unsafe fn rowex_lookup(rowex: *mut Rowex, key: u64, info: *mut EpochInfo) -> u64;
+        unsafe fn rowex_u64_lookup(rowex: *mut Rowex, key: u64, info: *mut EpochInfo) -> u64;
 
-        unsafe fn rowex_remove(rowex: *mut Rowex, key: u64, info: *mut EpochInfo);
+        unsafe fn rowex_u64_remove(rowex: *mut Rowex, key: u64, info: *mut EpochInfo);
     }
 }
 
@@ -25,7 +25,7 @@ pub struct Rowex(UniquePtr<ffi::Rowex>);
 
 impl Default for Rowex {
     fn default() -> Self {
-        Self(ffi::rowex_new())
+        Self(ffi::rowex_u64_new())
     }
 }
 
@@ -50,9 +50,9 @@ pub struct RowexRef<'a> {
 
 impl<'a> RowexRef<'a> {
     #[inline]
-    pub fn insert(&self, key: u64) {
+    pub fn insert_u64(&self, key: u64) {
         unsafe {
-            ffi::rowex_insert(
+            ffi::rowex_u64_insert(
                 self.rowex as *const _ as *mut _,
                 key,
                 self.epoch.as_mut_ptr(),
@@ -61,9 +61,9 @@ impl<'a> RowexRef<'a> {
     }
 
     #[inline]
-    pub fn get(&self, key: u64) -> u64 {
+    pub fn get_u64(&self, key: u64) -> u64 {
         unsafe {
-            ffi::rowex_lookup(
+            ffi::rowex_u64_lookup(
                 self.rowex as *const _ as *mut _,
                 key,
                 self.epoch.as_mut_ptr(),
@@ -72,9 +72,9 @@ impl<'a> RowexRef<'a> {
     }
 
     #[inline]
-    pub fn remove(&self, key: u64) {
+    pub fn remove_u64(&self, key: u64) {
         unsafe {
-            ffi::rowex_remove(
+            ffi::rowex_u64_remove(
                 self.rowex as *const _ as *mut _,
                 key,
                 self.epoch.as_mut_ptr(),
@@ -95,7 +95,7 @@ mod tests {
         let map = rowex.pin();
 
         for i in (1..COUNT).step_by(3) {
-            map.insert(i);
+            map.insert_u64(i);
         }
 
         for i in (1..COUNT).step_by(3) {
