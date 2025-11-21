@@ -106,3 +106,22 @@ bool rowex_string_lookup(Rowex *rowex, const char *kbuf, size_t klen,
   *value = pair->value;
   return true;
 }
+
+bool rowex_string_lookup_range(Rowex *rowex, const char *startbuf,
+                               size_t startlen, const char *endbuf,
+                               size_t endlen, uint64_t result[],
+                               size_t resultSize, size_t *resultsFound,
+                               EpochInfo *epocheInfo) {
+  Key start_key;
+  start_key.set(startbuf, startlen);
+
+  Key end_key;
+  end_key.set(endbuf, endlen);
+
+  Key continue_key;
+
+  // NOTE: returns TIDs instead of values, fine for conservative performance
+  // estimate but not for real use
+  return rowex->lookupRange(start_key, end_key, continue_key, result,
+                            resultSize, *resultsFound, *epocheInfo);
+}

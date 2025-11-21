@@ -51,6 +51,17 @@ mod ffi {
             value: *mut u64,
             info: *mut EpochInfo,
         ) -> bool;
+        unsafe fn rowex_string_lookup_range(
+            rowex: *mut Rowex,
+            startbuf: *const c_char,
+            startlen: usize,
+            endbuf: *const c_char,
+            endlen: usize,
+            results: *mut u64,
+            results_len: usize,
+            results_found: *mut usize,
+            info: *mut EpochInfo,
+        ) -> bool;
     }
 }
 
@@ -173,6 +184,25 @@ impl<'a> RowexRef<'a, String> {
             )
             .then_some(value)
         }
+    }
+
+    #[inline]
+    pub fn get_range_string(&self, start: &str, end: &str, buffer: &mut Vec<u64>) {
+        let mut found = 0;
+        unsafe {
+            ffi::rowex_string_lookup_range(
+                self.rowex as *const _ as *mut _,
+                start.as_ptr().cast(),
+                start.len(),
+                end.as_ptr().cast(),
+                end.len(),
+                buffer.as_mut_ptr(),
+                buffer.len(),
+                &mut found,
+                self.epoch.as_mut_ptr(),
+            )
+        };
+        buffer.truncate(found);
     }
 }
 

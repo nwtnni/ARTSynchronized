@@ -23,3 +23,8 @@ bool rowex_string_insert(Rowex *rowex, const char *kbuf, size_t klen,
                          uint64_t value, EpochInfo *epocheInfo);
 bool rowex_string_lookup(Rowex *rowex, const char *kbuf, size_t klen,
                          uint64_t *value, EpochInfo *epocheInfo);
+bool rowex_string_lookup_range(Rowex *rowex, const char *startbuf,
+                               size_t startlen, const char *endbuf,
+                               size_t endlen, uint64_t result[],
+                               size_t resultSize, size_t *resultsFound,
+                               EpochInfo *epocheInfo);
