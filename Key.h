@@ -29,6 +29,8 @@ public:
 
     void operator=(const char key[]);
 
+    void operator=(const Key &key);
+
     bool operator==(const Key &k) const {
         if (k.getKeyLen() != getKeyLen()) {
             return false;
@@ -102,6 +104,20 @@ inline void Key::operator=(const char key[]) {
     } else {
         data = new uint8_t[len];
         memcpy(data, key, len);
+    }
+}
+
+inline void Key::operator=(const Key& key) {
+    if (len > stackLen) {
+        delete[] data;
+    }
+    len = key.getKeyLen();
+    if (len <= stackLen) {
+        memcpy(stackKey, key.stackKey, len);
+        data = stackKey;
+    } else {
+        data = new uint8_t[len];
+        memcpy(data, key.data, len);
     }
 }
 

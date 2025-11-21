@@ -241,7 +241,7 @@ namespace ART_ROWEX {
         return 0;
     }
 
-    void Tree::insert(const Key &k, TID tid, ThreadInfo &epocheInfo) {
+    bool Tree::insert(const Key &k, TID tid, ThreadInfo &epocheInfo) {
         EpocheGuard epocheGuard(epocheInfo);
         restart:
         bool needRestart = false;
@@ -295,7 +295,7 @@ namespace ART_ROWEX {
                                     node->getPrefi().prefixCount - ((nextLevel - level) + 1));
 
                     node->writeUnlock();
-                    return;
+                    return true;
                 }
                 case CheckPrefixPessimisticResult::Match:
                     break;
@@ -311,7 +311,7 @@ namespace ART_ROWEX {
 
                 N::insertAndUnlock(node, parentNode, parentKey, nodeKey, N::setLeaf(tid), epocheInfo, needRestart);
                 if (needRestart) goto restart;
-                return;
+                return true;
             }
             if (N::isLeaf(nextNode)) {
                 node->lockVersionOrRestart(v, needRestart);
@@ -325,7 +325,7 @@ namespace ART_ROWEX {
                 // assert(level < key.getKeyLen()); //prevent inserting when prefix of key exists already
                 if (level == key.getKeyLen()) {
                     node->writeUnlock();
-                    return;
+                    return false;
                 }
 
                 uint32_t prefixLength = 0;
@@ -334,7 +334,7 @@ namespace ART_ROWEX {
 
                     if (level + prefixLength == key.getKeyLen()) {
                         node->writeUnlock();
-                        return;
+                        return false;
                     }
                 }
 
@@ -343,7 +343,7 @@ namespace ART_ROWEX {
                 n4->insert(key[level + prefixLength], nextNode);
                 N::change(node, k[level - 1], n4);
                 node->writeUnlock();
-                return;
+                return true;
             }
             level++;
         }

@@ -14,14 +14,34 @@ mod ffi {
         unsafe fn rowex_info(rowex: *mut Rowex) -> UniquePtr<EpochInfo>;
 
         fn rowex_u64_new() -> UniquePtr<Rowex>;
-        unsafe fn rowex_u64_insert(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo);
-        unsafe fn rowex_u64_lookup(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo) -> u64;
-        unsafe fn rowex_u64_remove(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo);
+        unsafe fn rowex_u64_insert(
+            rowex: *mut Rowex,
+            key: u64,
+            value: u64,
+            info: *mut EpochInfo,
+        ) -> bool;
+        unsafe fn rowex_u64_lookup(
+            rowex: *mut Rowex,
+            key: u64,
+            value: *mut u64,
+            info: *mut EpochInfo,
+        ) -> bool;
 
         fn rowex_string_new() -> UniquePtr<Rowex>;
-        unsafe fn rowex_string_insert(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo);
-        unsafe fn rowex_string_lookup(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo) -> u64;
-        unsafe fn rowex_string_remove(rowex: *mut Rowex, tid: u64, info: *mut EpochInfo);
+        unsafe fn rowex_string_insert(
+            rowex: *mut Rowex,
+            kbuf: *const c_char,
+            klen: usize,
+            value: u64,
+            info: *mut EpochInfo,
+        ) -> bool;
+        unsafe fn rowex_string_lookup(
+            rowex: *mut Rowex,
+            kbuf: *const c_char,
+            klen: usize,
+            value: *mut u64,
+            info: *mut EpochInfo,
+        ) -> bool;
     }
 }
 
@@ -74,83 +94,59 @@ pub struct RowexRef<'a, K> {
 
 impl<'a> RowexRef<'a, u64> {
     #[inline]
-    pub fn insert_u64(&self, key: u64) {
+    pub fn insert_u64(&self, key: u64, value: u64) -> bool {
         unsafe {
             ffi::rowex_u64_insert(
                 self.rowex as *const _ as *mut _,
                 key,
+                value,
                 self.epoch.as_mut_ptr(),
             )
         }
     }
 
     #[inline]
-    pub fn get_u64(&self, key: u64) -> u64 {
+    pub fn get_u64(&self, key: u64) -> Option<u64> {
         unsafe {
+            let mut value = 0u64;
             ffi::rowex_u64_lookup(
                 self.rowex as *const _ as *mut _,
                 key,
+                &mut value,
                 self.epoch.as_mut_ptr(),
             )
-        }
-    }
-
-    #[inline]
-    pub fn remove_u64(&self, key: u64) {
-        unsafe {
-            ffi::rowex_u64_remove(
-                self.rowex as *const _ as *mut _,
-                key,
-                self.epoch.as_mut_ptr(),
-            )
+            .then_some(value)
         }
     }
 }
 
 impl<'a> RowexRef<'a, String> {
     #[inline]
-    pub fn insert_string(&self, key: &'static str) {
+    pub fn insert_string(&self, key: &str, value: u64) -> bool {
         unsafe {
-            let tid = Self::tid_from_string(key);
             ffi::rowex_string_insert(
                 self.rowex as *const _ as *mut _,
-                tid,
+                key.as_ptr().cast(),
+                key.len(),
+                value,
                 self.epoch.as_mut_ptr(),
             )
         }
     }
 
     #[inline]
-    pub fn get_string(&self, key: &'static str) -> bool {
+    pub fn get_string(&self, key: &str) -> Option<u64> {
         unsafe {
-            let tid = Self::tid_from_string(key);
+            let mut value = 0u64;
             ffi::rowex_string_lookup(
                 self.rowex as *const _ as *mut _,
-                tid,
-                self.epoch.as_mut_ptr(),
-            ) == tid
-        }
-    }
-
-    #[inline]
-    pub fn remove_string(&self, key: &'static str) {
-        unsafe {
-            let tid = Self::tid_from_string(key);
-            ffi::rowex_string_remove(
-                self.rowex as *const _ as *mut _,
-                tid,
+                key.as_ptr().cast(),
+                key.len(),
+                &mut value,
                 self.epoch.as_mut_ptr(),
             )
+            .then_some(value)
         }
-    }
-
-    fn tid_from_string(key: &'static str) -> u64 {
-        let len = key.len() as u64;
-        debug_assert!(len <= u16::MAX as u64);
-        let mut tid = key.as_ptr() as u64;
-        debug_assert_eq!(tid & !((1 << 48) - 1), 0);
-        tid |= len << 48;
-        tid
     }
 }
 
@@ -166,19 +162,31 @@ mod tests {
         let map = rowex.pin();
 
         for i in (1..COUNT).step_by(3) {
-            map.insert_u64(i);
+            assert!(map.insert_u64(i, i));
         }
 
         for i in (1..COUNT).step_by(3) {
-            assert_eq!(map.get_u64(i), i);
+            assert_eq!(map.get_u64(i), Some(i));
         }
 
-        for i in (1..COUNT).step_by(3) {
-            map.remove_u64(i);
+        for i in (1..COUNT).skip(1).step_by(3) {
+            assert_eq!(map.get_u64(i), None);
+        }
+    }
+
+    #[test]
+    fn duplicate_u64() {
+        let rowex = Rowex::new_u64();
+        let map = rowex.pin();
+
+        const COUNT: u64 = 10_000;
+
+        for i in 0..COUNT {
+            assert!(map.insert_u64(i, i));
         }
 
-        for i in 1..COUNT {
-            assert_eq!(map.get_u64(i), 0);
+        for i in 0..COUNT {
+            assert!(!map.insert_u64(i, i + 1));
         }
     }
 
@@ -189,20 +197,34 @@ mod tests {
         let rowex = Rowex::new_string();
         let map = rowex.pin();
 
-        for string in DATA {
-            map.insert_string(string);
+        for (i, string) in DATA.iter().enumerate() {
+            assert!(map.insert_string(string, i as u64));
         }
 
-        for string in DATA {
-            assert!(map.get_string(string));
+        for (i, string) in DATA.iter().enumerate() {
+            assert_eq!(map.get_string(string), Some(i as u64));
+        }
+    }
+
+    #[test]
+    fn long_strings() {
+        let rowex = Rowex::new_string();
+        let map = rowex.pin();
+
+        let keys = (1..1000)
+            .map(|len| {
+                let mut key = "a".repeat(len);
+                key.push('\n');
+                key
+            })
+            .collect::<Vec<_>>();
+
+        for (i, string) in keys.iter().enumerate() {
+            assert!(map.insert_string(string, i as u64));
         }
 
-        for string in DATA {
-            map.remove_string(string);
-        }
-
-        for string in DATA {
-            assert!(!map.get_string(string));
+        for (i, string) in keys.iter().enumerate() {
+            assert_eq!(map.get_string(string), Some(i as u64));
         }
     }
 }
