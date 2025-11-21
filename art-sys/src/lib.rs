@@ -26,6 +26,15 @@ mod ffi {
             value: *mut u64,
             info: *mut EpochInfo,
         ) -> bool;
+        unsafe fn rowex_u64_lookup_range(
+            rowex: *mut Rowex,
+            start: u64,
+            end: u64,
+            results: *mut u64,
+            results_len: usize,
+            results_found: *mut usize,
+            info: *mut EpochInfo,
+        ) -> bool;
 
         fn rowex_string_new() -> UniquePtr<Rowex>;
         unsafe fn rowex_string_insert(
@@ -117,6 +126,23 @@ impl<'a> RowexRef<'a, u64> {
             )
             .then_some(value)
         }
+    }
+
+    #[inline]
+    pub fn get_range_u64(&self, start: u64, end: u64, buffer: &mut Vec<u64>) {
+        let mut found = 0;
+        unsafe {
+            ffi::rowex_u64_lookup_range(
+                self.rowex as *const _ as *mut _,
+                start,
+                end,
+                buffer.as_mut_ptr(),
+                buffer.len(),
+                &mut found,
+                self.epoch.as_mut_ptr(),
+            )
+        };
+        buffer.truncate(found);
     }
 }
 

@@ -47,6 +47,25 @@ bool rowex_u64_lookup(Rowex *rowex, uint64_t key, uint64_t *value,
   return true;
 }
 
+bool rowex_u64_lookup_range(Rowex *rowex, uint64_t start, uint64_t end,
+                            uint64_t result[], size_t resultSize,
+                            size_t *resultsFound, EpochInfo *epocheInfo) {
+  Key start_key;
+  start_key.setKeyLen(sizeof(uint64_t));
+  reinterpret_cast<uint64_t *>(&start_key[0])[0] = __builtin_bswap64(start);
+
+  Key end_key;
+  end_key.setKeyLen(sizeof(uint64_t));
+  reinterpret_cast<uint64_t *>(&end_key[0])[0] = __builtin_bswap64(end);
+
+  Key continue_key;
+
+  // NOTE: returns TIDs instead of values, fine for conservative performance
+  // estimate but not for real use
+  return rowex->lookupRange(start_key, end_key, continue_key, result,
+                            resultSize, *resultsFound, *epocheInfo);
+}
+
 typedef struct pair_string {
   Key key;
   uint64_t value;
