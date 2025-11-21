@@ -321,10 +321,21 @@ namespace ART_ROWEX {
                 loadKey(N::getLeaf(nextNode), key);
 
                 level++;
-                assert(level < key.getKeyLen()); //prevent inserting when prefix of key exists already
+
+                // assert(level < key.getKeyLen()); //prevent inserting when prefix of key exists already
+                if (level == key.getKeyLen()) {
+                    node->writeUnlock();
+                    return;
+                }
+
                 uint32_t prefixLength = 0;
                 while (key[level + prefixLength] == k[level + prefixLength]) {
                     prefixLength++;
+
+                    if (level + prefixLength == key.getKeyLen()) {
+                        node->writeUnlock();
+                        return;
+                    }
                 }
 
                 auto n4 = new N4(level + prefixLength, &k[level], prefixLength);

@@ -124,11 +124,11 @@ impl<'a> RowexRef<'a, String> {
     pub fn get_string(&self, key: &'static str) -> bool {
         unsafe {
             let tid = Self::tid_from_string(key);
-            dbg!(ffi::rowex_string_lookup(
+            ffi::rowex_string_lookup(
                 self.rowex as *const _ as *mut _,
                 tid,
                 self.epoch.as_mut_ptr(),
-            )) == tid
+            ) == tid
         }
     }
 
