@@ -80,7 +80,7 @@ impl Rowex<u64> {
     }
 }
 
-impl Rowex<String> {
+impl Rowex<Vec<u8>> {
     #[inline]
     pub fn new_string() -> Self {
         Self::new(ffi::rowex_string_new())
@@ -157,9 +157,9 @@ impl<'a> RowexRef<'a, u64> {
     }
 }
 
-impl<'a> RowexRef<'a, String> {
+impl<'a> RowexRef<'a, Vec<u8>> {
     #[inline]
-    pub fn insert_string(&self, key: &str, value: u64) -> bool {
+    pub fn insert_string(&self, key: &[u8], value: u64) -> bool {
         unsafe {
             ffi::rowex_string_insert(
                 self.rowex as *const _ as *mut _,
@@ -172,7 +172,7 @@ impl<'a> RowexRef<'a, String> {
     }
 
     #[inline]
-    pub fn get_string(&self, key: &str) -> Option<u64> {
+    pub fn get_string(&self, key: &[u8]) -> Option<u64> {
         unsafe {
             let mut value = 0u64;
             ffi::rowex_string_lookup(
@@ -187,7 +187,7 @@ impl<'a> RowexRef<'a, String> {
     }
 
     #[inline]
-    pub fn get_range_string(&self, start: &str, end: &str, buffer: &mut Vec<u64>) {
+    pub fn get_range_string(&self, start: &[u8], end: &[u8], buffer: &mut Vec<u64>) {
         let mut found = 0;
         unsafe {
             ffi::rowex_string_lookup_range(
@@ -254,11 +254,11 @@ mod tests {
         let map = rowex.pin();
 
         for (i, string) in DATA.iter().enumerate() {
-            assert!(map.insert_string(string, i as u64));
+            assert!(map.insert_string(string.as_bytes(), i as u64));
         }
 
         for (i, string) in DATA.iter().enumerate() {
-            assert_eq!(map.get_string(string), Some(i as u64));
+            assert_eq!(map.get_string(string.as_bytes()), Some(i as u64));
         }
     }
 
@@ -276,11 +276,11 @@ mod tests {
             .collect::<Vec<_>>();
 
         for (i, string) in keys.iter().enumerate() {
-            assert!(map.insert_string(string, i as u64));
+            assert!(map.insert_string(string.as_bytes(), i as u64));
         }
 
         for (i, string) in keys.iter().enumerate() {
-            assert_eq!(map.get_string(string), Some(i as u64));
+            assert_eq!(map.get_string(string.as_bytes()), Some(i as u64));
         }
     }
 }
