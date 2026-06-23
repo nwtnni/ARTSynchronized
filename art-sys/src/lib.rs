@@ -96,7 +96,7 @@ impl<K> Rowex<K> {
     }
 
     #[inline]
-    pub fn pin(&self) -> RowexRef<K> {
+    pub fn pin(&self) -> RowexRef<'_, K> {
         let epoch = unsafe { ffi::rowex_info(self.inner.as_mut_ptr()) };
         RowexRef {
             rowex: self.inner.as_ref().unwrap(),
